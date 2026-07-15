@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { CarePad } from './CarePad'
-import { Chicken } from './Chicken'
 import { Egg } from './Egg'
 import { APP_NAME } from './brand'
 import { getGrowth, getGrowthLabel, getMood } from './game'
+import { getPetOption } from './pets'
 import { NameScreen } from './NameScreen'
+import { Pet } from './Pet'
 import { useGame } from './useGame'
 
 const moodCopy: Record<string, string> = {
@@ -51,8 +52,8 @@ export default function App() {
               <p className="brand brand--small">{APP_NAME}</p>
               <p className="pet-name">{state.name}</p>
             </header>
-            <p className="prompt">Tap the egg!</p>
-            <Egg taps={state.hatchTaps} onTap={onTapEgg} />
+            <p className="prompt">{getPetOption(state.kind).eggHint}</p>
+            <Egg taps={state.hatchTaps} onTap={onTapEgg} kind={state.kind} />
           </motion.div>
         )}
 
@@ -75,19 +76,23 @@ export default function App() {
               {(() => {
                 const mood = getMood(state)
                 const growth = getGrowth(state)
+                const pet = getPetOption(state.kind)
                 if (performance) return `${state.name} is singing!`
-                if (burst === 'hatch') return `A baby chick! Meet ${state.name}!`
+                if (burst === 'hatch') {
+                  return `A ${pet.babyLabel}! Meet ${state.name}!`
+                }
                 if (state.sleeping) {
                   return `${state.name} is sleeping... Tap Wake or Play!`
                 }
                 if (burst === 'wake') return `${state.name} woke up!`
                 if (mood === 'sick') return `${state.name} is sick — give Meds!`
                 if (mood === 'hungry') return `${state.name} is hungry and sad`
-                return `${state.name} (${getGrowthLabel(growth)}) ${moodCopy[mood]}`
+                return `${state.name} (${getGrowthLabel(growth, state.kind)}) ${moodCopy[mood]}`
               })()}
             </p>
 
-            <Chicken
+            <Pet
+              kind={state.kind}
               mood={getMood(state)}
               growth={getGrowth(state)}
               hunger={state.needs.hunger}

@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
-import type { Growth, Mood } from './game'
+import type { Growth, Mood, PetKind } from './game'
+import { getPetOption } from './pets'
 import type { Song } from './songs'
 
-interface ChickenProps {
+interface PetProps {
+  kind: PetKind
   mood: Mood
   growth: Growth
   hunger: number
@@ -23,7 +25,7 @@ const eyesByMood: Record<Mood, string> = {
   sick: 'x x',
 }
 
-const beakByMood: Record<Mood, string> = {
+const mouthByMood: Record<Mood, string> = {
   happy: '▽',
   ok: '▼',
   sad: '︵',
@@ -33,7 +35,8 @@ const beakByMood: Record<Mood, string> = {
   sick: '~',
 }
 
-export function Chicken({
+export function Pet({
+  kind,
   mood,
   growth,
   hunger,
@@ -42,7 +45,8 @@ export function Chicken({
   performance = null,
   sick = false,
   sleeping = false,
-}: ChickenProps) {
+}: PetProps) {
+  const pet = getPetOption(kind)
   const isDancing = burst === 'play' && Boolean(performance)
   const isSleeping = sleeping || burst === 'sleep'
   const isHungrySkinny = hunger < 35 && !isDancing && !isSleeping
@@ -63,18 +67,18 @@ export function Chicken({
       : isSickLook
         ? 'x x'
         : eyesByMood[mood]
-  const beak = isDancing
+  const mouth = isDancing
     ? '◡'
     : isSleeping
       ? '‿'
       : isSickLook
         ? '~'
-        : beakByMood[mood]
+        : mouthByMood[mood]
 
   return (
     <div
-      className="chicken-stage"
-      aria-label={`${name} is ${isSleeping ? 'sleeping' : isDancing ? 'playing' : mood}`}
+      className="pet-stage"
+      aria-label={`${name} the ${pet.label} is ${isSleeping ? 'sleeping' : isDancing ? 'playing' : mood}`}
     >
       {isDancing && performance && (
         <div className="song-banner" aria-live="polite">
@@ -99,13 +103,14 @@ export function Chicken({
 
       <motion.div
         className={[
-          'chicken',
-          `chicken--${mood}`,
-          `chicken--growth-${growth}`,
-          isDancing ? 'chicken--dance' : '',
-          isSleeping ? 'chicken--sleeping' : '',
-          isHungrySkinny ? 'chicken--skinny' : '',
-          isSickLook ? 'chicken--ill' : '',
+          'pet',
+          `pet--${kind}`,
+          `pet--${mood}`,
+          `pet--growth-${growth}`,
+          isDancing ? 'pet--dance' : '',
+          isSleeping ? 'pet--sleeping' : '',
+          isHungrySkinny ? 'pet--skinny' : '',
+          isSickLook ? 'pet--ill' : '',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -137,36 +142,66 @@ export function Chicken({
                   : { duration: 1.6, repeat: Infinity, ease: 'easeInOut' }
         }
       >
-        <div className="chicken__comb" />
-        <div className="chicken__body">
-          <div className="chicken__cheek chicken__cheek--left" />
-          <div className="chicken__cheek chicken__cheek--right" />
+        {kind === 'chicken' && <div className="pet__comb" />}
+        {kind === 'dog' && (
+          <>
+            <div className="pet__ear pet__ear--dog-left" />
+            <div className="pet__ear pet__ear--dog-right" />
+            <div className="pet__tail pet__tail--dog" />
+          </>
+        )}
+        {kind === 'cat' && (
+          <>
+            <div className="pet__ear pet__ear--cat-left" />
+            <div className="pet__ear pet__ear--cat-right" />
+            <div className="pet__tail pet__tail--cat" />
+          </>
+        )}
+
+        <div className="pet__body">
+          <div className="pet__cheek pet__cheek--left" />
+          <div className="pet__cheek pet__cheek--right" />
+          {kind === 'cat' && <div className="pet__whiskers" aria-hidden />}
           <div
-            className={`chicken__eyes ${isSleeping ? 'chicken__eyes--closed' : ''} ${isDancing ? 'chicken__eyes--smile' : ''} ${isHungrySkinny || mood === 'sad' ? 'chicken__eyes--sad' : ''}`}
+            className={`pet__eyes ${isSleeping ? 'pet__eyes--closed' : ''} ${isDancing ? 'pet__eyes--smile' : ''} ${isHungrySkinny || mood === 'sad' ? 'pet__eyes--sad' : ''}`}
             aria-hidden
           >
             {eyes}
           </div>
           <div
-            className={`chicken__beak ${isDancing ? 'chicken__beak--smile' : ''} ${isSleeping ? 'chicken__beak--sleep' : ''}`}
+            className={`pet__mouth ${kind === 'chicken' ? 'pet__mouth--beak' : ''} ${isDancing ? 'pet__mouth--smile' : ''} ${isSleeping ? 'pet__mouth--sleep' : ''}`}
             aria-hidden
           >
-            {beak}
+            {kind === 'dog' || kind === 'cat' ? (
+              <span className="pet__nose" />
+            ) : null}
+            {mouth}
           </div>
           {mood === 'dirty' && !isDancing && !isSleeping && (
-            <div className="chicken__mud" aria-hidden />
+            <div className="pet__mud" aria-hidden />
           )}
           {(mood === 'hungry' || isHungrySkinny) && !isDancing && !isSleeping && (
-            <div className="chicken__rumble" aria-hidden />
+            <div className="pet__rumble" aria-hidden />
           )}
         </div>
-        <div
-          className={`chicken__wing chicken__wing--left ${isDancing ? 'chicken__wing--flap' : ''}`}
-        />
-        <div
-          className={`chicken__wing chicken__wing--right ${isDancing ? 'chicken__wing--flap' : ''}`}
-        />
-        <div className="chicken__feet" aria-hidden>
+
+        {kind === 'chicken' ? (
+          <>
+            <div
+              className={`pet__wing pet__wing--left ${isDancing ? 'pet__wing--flap' : ''}`}
+            />
+            <div
+              className={`pet__wing pet__wing--right ${isDancing ? 'pet__wing--flap' : ''}`}
+            />
+          </>
+        ) : (
+          <>
+            <div className="pet__paw pet__paw--left" />
+            <div className="pet__paw pet__paw--right" />
+          </>
+        )}
+
+        <div className="pet__feet" aria-hidden>
           <span />
           <span />
         </div>
@@ -191,7 +226,9 @@ export function Chicken({
       {burst === 'pet' && <span className="fx fx--pet">Love!</span>}
       {burst === 'meds' && <span className="fx fx--meds">Better!</span>}
       {burst === 'wake' && <span className="fx fx--wake">Up!</span>}
-      {burst === 'hatch' && <span className="fx fx--hatch">Peep!</span>}
+      {burst === 'hatch' && (
+        <span className="fx fx--hatch">{pet.hatchCue}</span>
+      )}
     </div>
   )
 }

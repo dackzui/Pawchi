@@ -34,7 +34,7 @@ export function CarePad({
 
   return (
     <div className="care">
-      <div className="meters" aria-label="Chicken needs">
+      <div className="meters" aria-label="Pet needs">
         {(
           [
             ['Hunger', needs.hunger],

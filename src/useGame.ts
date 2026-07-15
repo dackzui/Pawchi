@@ -9,6 +9,7 @@ import {
   tapEgg,
   type CareAction,
   type GameState,
+  type PetKind,
   type Stage,
 } from './game'
 import { playSong, stopSong } from './playSong'
@@ -52,8 +53,8 @@ export function useGame() {
     }
   }, [])
 
-  const startGame = useCallback((name: string) => {
-    setState(createNewGame(name))
+  const startGame = useCallback((name: string, kind: PetKind) => {
+    setState(createNewGame(name, kind))
   }, [])
 
   const onTapEgg = useCallback(() => {

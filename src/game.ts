@@ -1,3 +1,7 @@
+import { getPetOption, isPetKind, type PetKind } from './pets'
+
+export type { PetKind }
+
 export type Stage = 'name' | 'egg' | 'chick'
 
 export type Growth = 'baby' | 'teen' | 'adult'
@@ -22,12 +26,13 @@ export interface Needs {
 
 export interface GameState {
   name: string
+  kind: PetKind
   stage: Stage
   needs: Needs
   hatchTaps: number
   lastTick: number
   createdAt: number
-  /** When the egg hatched into a chick */
+  /** When the egg hatched into a pet */
   hatchedAt: number | null
   sick: boolean
   lastSickRoll: number
@@ -52,9 +57,9 @@ export const DECAY_PER_MINUTE: Needs = {
 
 /**
  * Slow growth after hatch (real time):
- * - baby chick: 0–16 hours
- * - growing chick: 16–48 hours
- * - full chicken: after 48 hours
+ * - baby: 0–16 hours
+ * - growing: 16–48 hours
+ * - full pet: after 48 hours
  */
 export const GROWTH_MINUTES = {
   teen: 16 * 60,
@@ -86,10 +91,12 @@ export function clampNeed(value: number): number {
   return Math.max(0, Math.min(100, value))
 }
 
-export function createNewGame(name: string): GameState {
+export function createNewGame(name: string, kind: PetKind = 'chicken'): GameState {
   const now = Date.now()
+  const pet = getPetOption(kind)
   return {
-    name: name.trim() || 'Chickie',
+    name: name.trim() || pet.defaultName,
+    kind,
     stage: 'egg',
     needs: {
       hunger: 80,
@@ -117,10 +124,11 @@ export function getGrowth(state: GameState, now = Date.now()): Growth {
   return 'baby'
 }
 
-export function getGrowthLabel(growth: Growth): string {
-  if (growth === 'baby') return 'baby chick'
-  if (growth === 'teen') return 'growing chick'
-  return 'big chicken'
+export function getGrowthLabel(growth: Growth, kind: PetKind = 'chicken'): string {
+  const pet = getPetOption(kind)
+  if (growth === 'baby') return pet.babyLabel
+  if (growth === 'teen') return pet.teenLabel
+  return pet.adultLabel
 }
 
 function decayPlayStreak(state: GameState, now: number): number {
@@ -355,6 +363,7 @@ function migrateLoaded(raw: Record<string, unknown>): GameState | null {
   const stage = (raw.stage as Stage) ?? 'egg'
   return {
     name: raw.name,
+    kind: isPetKind(raw.kind) ? raw.kind : 'chicken',
     stage,
     needs: {
       hunger: clampNeed(Number(needs.hunger) || 50),
